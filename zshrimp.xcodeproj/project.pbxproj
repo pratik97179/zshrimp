@@ -1,0 +1,575 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 110;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		71ECA0E030BA400000553A51 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 71ECA0E130BA400000553A51 /* SwiftTerm */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		71ECA0BF30BA3FCA00553A51 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 71ECA0A930BA3FC900553A51 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 71ECA0B030BA3FC900553A51;
+			remoteInfo = zshrimp;
+		};
+		71ECA0C930BA3FCA00553A51 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 71ECA0A930BA3FC900553A51 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 71ECA0B030BA3FC900553A51;
+			remoteInfo = zshrimp;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		71ECA0B130BA3FC900553A51 /* zshrimp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = zshrimp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		71ECA0BE30BA3FCA00553A51 /* zshrimpTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = zshrimpTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		71ECA0C830BA3FCA00553A51 /* zshrimpUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = zshrimpUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		71ECA0B330BA3FC900553A51 /* zshrimp */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = zshrimp;
+			sourceTree = "<group>";
+		};
+		71ECA0C130BA3FCA00553A51 /* zshrimpTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = zshrimpTests;
+			sourceTree = "<group>";
+		};
+		71ECA0CB30BA3FCA00553A51 /* zshrimpUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = zshrimpUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		71ECA0AE30BA3FC900553A51 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				71ECA0E030BA400000553A51 /* SwiftTerm in Frameworks */,
+			);
+		};
+		71ECA0BB30BA3FCA00553A51 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+		71ECA0C530BA3FCA00553A51 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		71ECA0A830BA3FC900553A51 = {
+			isa = PBXGroup;
+			children = (
+				71ECA0B330BA3FC900553A51 /* zshrimp */,
+				71ECA0C130BA3FCA00553A51 /* zshrimpTests */,
+				71ECA0CB30BA3FCA00553A51 /* zshrimpUITests */,
+				71ECA0B230BA3FC900553A51 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		71ECA0B230BA3FC900553A51 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				71ECA0B130BA3FC900553A51 /* zshrimp.app */,
+				71ECA0BE30BA3FCA00553A51 /* zshrimpTests.xctest */,
+				71ECA0C830BA3FCA00553A51 /* zshrimpUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		71ECA0B030BA3FC900553A51 /* zshrimp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 71ECA0D030BA3FCA00553A51 /* Build configuration list for PBXNativeTarget "zshrimp" */;
+			buildPhases = (
+				71ECA0AD30BA3FC900553A51 /* Sources */,
+				71ECA0AE30BA3FC900553A51 /* Frameworks */,
+				71ECA0AF30BA3FC900553A51 /* Resources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				71ECA0B330BA3FC900553A51 /* zshrimp */,
+			);
+			name = zshrimp;
+			packageProductDependencies = (
+				71ECA0E130BA400000553A51 /* SwiftTerm */,
+			);
+			productName = zshrimp;
+			productReference = 71ECA0B130BA3FC900553A51 /* zshrimp.app */;
+			productType = "com.apple.product-type.application";
+		};
+		71ECA0BD30BA3FCA00553A51 /* zshrimpTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 71ECA0D330BA3FCA00553A51 /* Build configuration list for PBXNativeTarget "zshrimpTests" */;
+			buildPhases = (
+				71ECA0BA30BA3FCA00553A51 /* Sources */,
+				71ECA0BB30BA3FCA00553A51 /* Frameworks */,
+				71ECA0BC30BA3FCA00553A51 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				71ECA0C030BA3FCA00553A51 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				71ECA0C130BA3FCA00553A51 /* zshrimpTests */,
+			);
+			name = zshrimpTests;
+			productName = zshrimpTests;
+			productReference = 71ECA0BE30BA3FCA00553A51 /* zshrimpTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		71ECA0C730BA3FCA00553A51 /* zshrimpUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 71ECA0D630BA3FCA00553A51 /* Build configuration list for PBXNativeTarget "zshrimpUITests" */;
+			buildPhases = (
+				71ECA0C430BA3FCA00553A51 /* Sources */,
+				71ECA0C530BA3FCA00553A51 /* Frameworks */,
+				71ECA0C630BA3FCA00553A51 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				71ECA0CA30BA3FCA00553A51 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				71ECA0CB30BA3FCA00553A51 /* zshrimpUITests */,
+			);
+			name = zshrimpUITests;
+			productName = zshrimpUITests;
+			productReference = 71ECA0C830BA3FCA00553A51 /* zshrimpUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		71ECA0A930BA3FC900553A51 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					71ECA0B030BA3FC900553A51 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					71ECA0BD30BA3FCA00553A51 = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = 71ECA0B030BA3FC900553A51;
+					};
+					71ECA0C730BA3FCA00553A51 = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = 71ECA0B030BA3FC900553A51;
+					};
+				};
+			};
+			buildConfigurationList = 71ECA0AC30BA3FC900553A51 /* Build configuration list for PBXProject "zshrimp" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 71ECA0A830BA3FC900553A51;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				71ECA0E230BA400000553A51 /* XCRemoteSwiftPackageReference "SwiftTerm" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 71ECA0B230BA3FC900553A51 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				71ECA0B030BA3FC900553A51 /* zshrimp */,
+				71ECA0BD30BA3FCA00553A51 /* zshrimpTests */,
+				71ECA0C730BA3FCA00553A51 /* zshrimpUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		71ECA0AF30BA3FC900553A51 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		71ECA0BC30BA3FCA00553A51 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		71ECA0C630BA3FCA00553A51 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		71ECA0AD30BA3FC900553A51 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		71ECA0BA30BA3FCA00553A51 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		71ECA0C430BA3FCA00553A51 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		71ECA0C030BA3FCA00553A51 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 71ECA0B030BA3FC900553A51 /* zshrimp */;
+			targetProxy = 71ECA0BF30BA3FCA00553A51 /* PBXContainerItemProxy */;
+		};
+		71ECA0CA30BA3FCA00553A51 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 71ECA0B030BA3FC900553A51 /* zshrimp */;
+			targetProxy = 71ECA0C930BA3FCA00553A51 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		71ECA0CE30BA3FCA00553A51 /* Debug configuration for PBXProject "zshrimp" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		71ECA0CF30BA3FCA00553A51 /* Release configuration for PBXProject "zshrimp" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		71ECA0D130BA3FCA00553A51 /* Debug configuration for PBXNativeTarget "zshrimp" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RXX4LD2MKD;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atb.zshrimp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		71ECA0D230BA3FCA00553A51 /* Release configuration for PBXNativeTarget "zshrimp" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RXX4LD2MKD;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atb.zshrimp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		71ECA0D430BA3FCA00553A51 /* Debug configuration for PBXNativeTarget "zshrimpTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atb.zshrimpTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/zshrimp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/zshrimp";
+			};
+			name = Debug;
+		};
+		71ECA0D530BA3FCA00553A51 /* Release configuration for PBXNativeTarget "zshrimpTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atb.zshrimpTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/zshrimp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/zshrimp";
+			};
+			name = Release;
+		};
+		71ECA0D730BA3FCA00553A51 /* Debug configuration for PBXNativeTarget "zshrimpUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atb.zshrimpUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TEST_TARGET_NAME = zshrimp;
+			};
+			name = Debug;
+		};
+		71ECA0D830BA3FCA00553A51 /* Release configuration for PBXNativeTarget "zshrimpUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atb.zshrimpUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TEST_TARGET_NAME = zshrimp;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		71ECA0AC30BA3FC900553A51 /* Build configuration list for PBXProject "zshrimp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				71ECA0CE30BA3FCA00553A51 /* Debug configuration for PBXProject "zshrimp" */,
+				71ECA0CF30BA3FCA00553A51 /* Release configuration for PBXProject "zshrimp" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		71ECA0D030BA3FCA00553A51 /* Build configuration list for PBXNativeTarget "zshrimp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				71ECA0D130BA3FCA00553A51 /* Debug configuration for PBXNativeTarget "zshrimp" */,
+				71ECA0D230BA3FCA00553A51 /* Release configuration for PBXNativeTarget "zshrimp" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		71ECA0D330BA3FCA00553A51 /* Build configuration list for PBXNativeTarget "zshrimpTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				71ECA0D430BA3FCA00553A51 /* Debug configuration for PBXNativeTarget "zshrimpTests" */,
+				71ECA0D530BA3FCA00553A51 /* Release configuration for PBXNativeTarget "zshrimpTests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		71ECA0D630BA3FCA00553A51 /* Build configuration list for PBXNativeTarget "zshrimpUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				71ECA0D730BA3FCA00553A51 /* Debug configuration for PBXNativeTarget "zshrimpUITests" */,
+				71ECA0D830BA3FCA00553A51 /* Release configuration for PBXNativeTarget "zshrimpUITests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		71ECA0E230BA400000553A51 /* XCRemoteSwiftPackageReference "SwiftTerm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/migueldeicaza/SwiftTerm.git";
+			requirement = {
+				kind = exactVersion;
+				version = 1.99.4;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		71ECA0E130BA400000553A51 /* SwiftTerm */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 71ECA0E230BA400000553A51 /* XCRemoteSwiftPackageReference "SwiftTerm" */;
+			productName = SwiftTerm;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 71ECA0A930BA3FC900553A51 /* Project object */;
+	validationLevel = 1;
+}
