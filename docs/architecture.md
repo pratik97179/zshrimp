@@ -5,13 +5,13 @@ One window holding many independent terminal sessions, arranged by arbitrary hor
 ## Modules
 
 ```
-zshushi/
+zshrimp/
   App/        lifecycle, menu commands, key equivalents
   Window/     main panel, floating mode
   Panes/      SplitTree, PaneContainerView
   Terminal/   TerminalSurface and engine implementations
   Settings/   settings model, persistence, settings window
-zshushiTests/
+zshrimpTests/
 ```
 
 Only `Terminal/` depends on a terminal engine.

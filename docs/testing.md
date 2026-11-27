@@ -2,8 +2,8 @@
 
 ## Automated
 ```
-xcodebuild -project zshushi.xcodeproj -scheme zshushi -destination 'platform=macOS' build
-xcodebuild -project zshushi.xcodeproj -scheme zshushi -destination 'platform=macOS' test
+xcodebuild -project zshrimp.xcodeproj -scheme zshrimp -destination 'platform=macOS' build
+xcodebuild -project zshrimp.xcodeproj -scheme zshrimp -destination 'platform=macOS' test
 ```
 Unit tests cover `SplitTree`.
 
