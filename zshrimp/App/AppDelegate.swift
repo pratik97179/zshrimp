@@ -12,6 +12,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
+        NSWindow.allowsAutomaticWindowTabbing = false
         NSApp.mainMenu = makeMainMenu()
     }
 
@@ -43,6 +44,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let windowMenu = NSMenu(title: "Window")
         windowMenu.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
+        windowMenu.addItem(.separator())
+        windowMenu.addItem(withTitle: "Float on Top", action: #selector(MainWindowController.toggleFloating(_:)), keyEquivalent: "F")
         NSApp.windowsMenu = windowMenu
 
         let mainMenu = NSMenu()
