@@ -1,0 +1,116 @@
+//
+//  SearchLineCache.swift
+//  SwiftTerm
+//
+//  Ported from xterm.js search addon infrastructure.
+//
+
+#if !SWIFTTERM_EMBEDDED
+import Foundation
+
+typealias LineCacheEntry = (lineAsString: String, lineOffsets: [Int])
+
+final class SearchLineCache {
+    private enum Constants {
+        static let linesCacheTimeToLive: TimeInterval = 15.0
+    }
+
+    private let terminal: Terminal
+    private var linesCache: [LineCacheEntry?]?
+    private var lastAccessTimestamp: TimeInterval = 0
+
+    init (terminal: Terminal) {
+        self.terminal = terminal
+    }
+
+    func initLinesCache () {
+        let now = Date().timeIntervalSinceReferenceDate
+        let bufferLineCount = terminal.displayBuffer.lines.count
+
+        if let cache = linesCache {
+            if now - lastAccessTimestamp >= Constants.linesCacheTimeToLive || cache.count != bufferLineCount {
+                linesCache = nil
+            }
+        }
+
+        if linesCache == nil {
+            linesCache = Array(repeating: nil, count: bufferLineCount)
+        }
+
+        lastAccessTimestamp = now
+    }
+
+    func invalidate () {
+        linesCache = nil
+        lastAccessTimestamp = 0
+    }
+
+    func getLineFromCache (row: Int) -> LineCacheEntry? {
+        guard let cache = linesCache, row >= 0, row < cache.count else {
+            return nil
+        }
+        return cache[row]
+    }
+
+    func setLineInCache (row: Int, entry: LineCacheEntry) {
+        guard row >= 0, row < (linesCache?.count ?? 0) else {
+            return
+        }
+        linesCache?[row] = entry
+    }
+
+    /// The text of the rows from `lineIndex` to the end of its logical line,
+    /// with the string offset at which each row starts.
+    ///
+    /// `lastRow` clips the translation: no row after it is read, even when
+    /// the logical line continues. The frame path uses this limit so that a
+    /// line wrapped across thousands of rows costs only the rows near the
+    /// viewport. This function does not read or write the lines cache.
+    func translateBufferLineToStringWithWrap (lineIndex: Int, trimRight: Bool,
+                                              lastRow: Int = Int.max) -> LineCacheEntry {
+        let buffer = terminal.displayBuffer
+        var strings: [String] = []
+        var lineOffsets: [Int] = [0]
+        var idx = lineIndex
+
+        while idx >= 0 && idx < buffer.lines.count {
+            let line = buffer.lines[idx]
+            let nextLine = (idx + 1) < buffer.lines.count ? buffer.lines[idx + 1] : nil
+            let lineWrapsToNext = nextLine?.isWrapped ?? false
+
+            var string = buffer.translateBufferLineToString(
+                lineIndex: idx,
+                trimRight: !lineWrapsToNext && trimRight,
+                startCol: 0,
+                endCol: -1,
+                skipNullCellsFollowingWide: true,
+                textProvider: { self.terminal.getText(for: $0) }
+            ).replacingOccurrences(of: "\u{0}", with: " ")
+
+            if lineWrapsToNext, let nextLine {
+                let lastIndex = max(line.count - 1, 0)
+                let lastCellIsNull = line.packedCode(at: lastIndex) == 0 &&
+                    line.packedWidth(at: lastIndex) <= 1
+                if lastCellIsNull && nextLine.getWidth(index: 0) == 2 {
+                    if !string.isEmpty {
+                        string.removeLast()
+                    }
+                }
+            }
+
+            strings.append(string)
+
+            if lineWrapsToNext && idx < lastRow {
+                lineOffsets.append(lineOffsets[lineOffsets.count - 1] + string.count)
+            } else {
+                break
+            }
+
+            idx += 1
+        }
+
+        return (strings.joined(), lineOffsets)
+    }
+}
+
+#endif // !SWIFTTERM_EMBEDDED
