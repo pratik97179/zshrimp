@@ -9,6 +9,7 @@ final class Settings {
         var fontSize = 13.0
         var foreground = "#D9D9D9"
         var background = "#000000"
+        var palette = Theme.all[0].palette
         /// How much the background color covers what is behind it: the desktop or the background image.
         var opacity = 1.0
         var padding = 4.0
@@ -48,6 +49,17 @@ final class Settings {
 extension Settings.Values {
     var font: NSFont {
         NSFont(name: fontName, size: fontSize) ?? .monospacedSystemFont(ofSize: fontSize, weight: .regular)
+    }
+
+    /// The preset these colors came from; nil once any of them is edited by hand.
+    var theme: Theme? {
+        Theme.all.first { $0.foreground == foreground && $0.background == background && $0.palette == palette }
+    }
+
+    mutating func apply(_ theme: Theme) {
+        foreground = theme.foreground
+        background = theme.background
+        palette = theme.palette
     }
 
     var backgroundColor: NSColor {

@@ -10,6 +10,12 @@ struct SettingsView: View {
     var body: some View {
         Form {
             Section("Appearance") {
+                Picker("Theme", selection: theme) {
+                    ForEach(Theme.all) { Text($0.name).tag($0.name) }
+                    if settings.values.theme == nil {
+                        Text("Custom").tag("")
+                    }
+                }
                 ColorPicker("Text", selection: color(\.foreground), supportsOpacity: false)
                 ColorPicker("Background", selection: color(\.background), supportsOpacity: false)
                 Slider(value: $settings.values.opacity, in: 0.2...1) {
@@ -63,6 +69,15 @@ struct SettingsView: View {
         if panel.runModal() == .OK, let url = panel.url {
             settings.values.backgroundImage = url.path
         }
+    }
+
+    private var theme: Binding<String> {
+        Binding(
+            get: { settings.values.theme?.name ?? "" },
+            set: { name in
+                if let theme = Theme.all.first(where: { $0.name == name }) { settings.values.apply(theme) }
+            }
+        )
     }
 
     private func color(_ keyPath: WritableKeyPath<Settings.Values, String>) -> Binding<Color> {
