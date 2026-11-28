@@ -3,8 +3,9 @@ import AppKit
 final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuItemValidation {
     private let panes = PaneContainerView()
 
-    private var isFloating = false {
-        didSet { applyFloating() }
+    private var isFloating: Bool {
+        get { Settings.shared.values.isFloating }
+        set { Settings.shared.values.isFloating = newValue }
     }
 
     init() {
@@ -23,6 +24,12 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         panel.delegate = self
         panes.onTitleChange = { [weak panel] title in panel?.title = title }
         panes.onEmpty = { [weak panel] in panel?.close() }
+        Task { [weak self] in
+            for await _ in Observations({ Settings.shared.values.isFloating }) {
+                guard let self else { break }
+                self.applyFloating()
+            }
+        }
     }
 
     @available(*, unavailable)
