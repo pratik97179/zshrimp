@@ -1,8 +1,7 @@
 import AppKit
 
 final class PaneContainerView: NSView {
-    // The gap between panes is the divider's grab area.
-    private static let grabWidth = max(Elevation.gap, 6)
+    private static let grabWidth: CGFloat = 8
 
     var onEmpty: (() -> Void)?
     var onTitleChange: ((String) -> Void)?
@@ -20,6 +19,7 @@ final class PaneContainerView: NSView {
         view.isHidden = true
         return view
     }()
+    private let overlay = PitOverlay()
     private var responderObservation: NSKeyValueObservation?
     private var settings = Settings.shared.values
     private var palette = ElevationPalette(Settings.shared.values)
@@ -30,8 +30,11 @@ final class PaneContainerView: NSView {
     init() {
         super.init(frame: .zero)
         wantsLayer = true
-        // The aspect-filled image overflows the view and would paint over the title bar.
+        // The pit's rounded edge clips the panes and the aspect-filled image alike.
         clipsToBounds = true
+        layer?.cornerRadius = Elevation.pitRadius
+        layer?.cornerCurve = .continuous
+        addSubview(overlay)
         tree.panes.forEach(addSurface)
         apply(settings)
         Task { [weak self] in
@@ -49,6 +52,7 @@ final class PaneContainerView: NSView {
         settings = values
         palette = ElevationPalette(values)
         for view in paneViews.values { view.apply(values, palette) }
+        overlay.palette = palette
         needsLayout = true
         needsDisplay = true
     }
@@ -110,7 +114,7 @@ final class PaneContainerView: NSView {
         let paneView = PaneView(content: surface.view)
         paneView.apply(settings, palette)
         paneViews[pane] = paneView
-        addSubview(paneView)
+        addSubview(paneView, positioned: .below, relativeTo: overlay)
         surface.onExit = { [weak self] in self?.close(pane) }
         surface.onTitleChange = { [weak self] title in self?.titleChanged(title, for: pane) }
         surface.onDirectoryChange = { [weak paneView] path in paneView?.setDirectory(path) }
@@ -159,30 +163,21 @@ final class PaneContainerView: NSView {
         super.layout()
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        for (pane, frame) in tree.frames(in: workspace) {
-            guard let view = paneViews[pane] else { continue }
-            let half = Elevation.gap / 2
-            view.frame = backingAlignedRect(frame.insetBy(dx: half, dy: half), options: .alignAllEdgesNearest)
+        for (pane, frame) in tree.frames(in: bounds) {
+            paneViews[pane]?.frame = backingAlignedRect(frame, options: .alignAllEdgesNearest)
         }
         CATransaction.commit()
+        overlay.frame = bounds
+        overlay.dividers = tree.dividers(in: bounds)
         window?.invalidateCursorRects(for: self)
         needsDisplay = true
-    }
-
-    /// The tree is laid out half a gap in from the edges, so every pane ends up a full gap from the window and from its neighbors.
-    private var workspace: NSRect {
-        // Content runs under the transparent title bar; panes start below it.
-        var area = bounds
-        area.origin.y += safeAreaInsets.top
-        area.size.height -= safeAreaInsets.top
-        return area.insetBy(dx: Elevation.gap / 2, dy: Elevation.gap / 2)
     }
 
     override func draw(_ dirtyRect: NSRect) {
         if let backgroundImage {
             drawAspectFill(backgroundImage)
         } else {
-            palette.workspace.setFill()
+            palette.pit.setFill()
             bounds.fill()
         }
     }
@@ -204,7 +199,7 @@ final class PaneContainerView: NSView {
     }
 
     private func divider(at point: NSPoint) -> SplitTree.Divider? {
-        tree.dividers(in: workspace).last { grabRect($0).contains(point) }
+        tree.dividers(in: bounds).last { grabRect($0).contains(point) }
     }
 
     override func hitTest(_ point: NSPoint) -> NSView? {
@@ -213,7 +208,7 @@ final class PaneContainerView: NSView {
     }
 
     override func resetCursorRects() {
-        for divider in tree.dividers(in: workspace) {
+        for divider in tree.dividers(in: bounds) {
             addCursorRect(grabRect(divider), cursor: divider.axis == .horizontal ? .resizeLeftRight : .resizeUpDown)
         }
     }
@@ -248,5 +243,66 @@ final class PaneContainerView: NSView {
         dragging = nil
         pendingRatio = nil
         dragGuide.isHidden = true
+    }
+}
+
+/// Drawn over the panes: the seams between them and the shade that presses the pit into the chassis. Takes no clicks.
+private final class PitOverlay: NSView {
+    var palette = ElevationPalette(Settings.shared.values) { didSet { needsDisplay = true } }
+    var dividers: [SplitTree.Divider] = [] { didSet { needsDisplay = true } }
+
+    override var isFlipped: Bool { true }
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+    override func draw(_ dirtyRect: NSRect) {
+        guard let context = NSGraphicsContext.current?.cgContext else { return }
+        for divider in dividers { drawSeam(divider, in: context) }
+        drawShade(in: context)
+    }
+
+    // A line of light that fades out toward both ends, so it separates without boxing anything in.
+    private func drawSeam(_ divider: SplitTree.Divider, in context: CGContext) {
+        let vertical = divider.axis == .horizontal
+        let parent = divider.parent
+        let line = backingAlignedRect(
+            vertical
+                ? NSRect(x: divider.position - 0.5, y: parent.minY, width: 1, height: parent.height)
+                : NSRect(x: parent.minX, y: divider.position - 0.5, width: parent.width, height: 1),
+            options: .alignAllEdgesNearest
+        )
+        let length = vertical ? line.height : line.width
+        let fade = min(Elevation.seamFade, length / 2) / max(length, 1)
+        let clear = palette.seam.withAlphaComponent(0)
+        guard let gradient = CGGradient(
+            colorsSpace: nil,
+            colors: [clear, palette.seam, palette.seam, clear].map(\.cgColor) as CFArray,
+            locations: [0, fade, 1 - fade, 1]
+        ) else { return }
+        context.saveGState()
+        context.clip(to: line)
+        context.drawLinearGradient(
+            gradient,
+            start: CGPoint(x: line.minX, y: line.minY),
+            end: vertical ? CGPoint(x: line.minX, y: line.maxY) : CGPoint(x: line.maxX, y: line.minY),
+            options: []
+        )
+        context.restoreGState()
+    }
+
+    // A ring outside the pit casts its shadow inward: deep under the top edge, faint along the sides.
+    private func drawShade(in context: CGContext) {
+        let pit = CGPath(roundedRect: bounds, cornerWidth: Elevation.pitRadius, cornerHeight: Elevation.pitRadius, transform: nil)
+        let ring = CGMutablePath()
+        ring.addRect(bounds.insetBy(dx: -40, dy: -40))
+        ring.addPath(pit)
+        context.saveGState()
+        context.addPath(pit)
+        context.clip()
+        // Shadow offsets are in unflipped space: negative height falls downward, into the pit.
+        context.setShadow(offset: CGSize(width: 0, height: -3), blur: 12, color: palette.pitShade.cgColor)
+        context.addPath(ring)
+        context.setFillColor(NSColor.black.cgColor)
+        context.fillPath(using: .evenOdd)
+        context.restoreGState()
     }
 }

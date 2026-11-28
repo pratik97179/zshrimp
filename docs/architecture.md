@@ -7,7 +7,7 @@ One window holding many independent terminal sessions, arranged by arbitrary hor
 ```
 zshrimp/
   App/        lifecycle, menu commands, key equivalents
-  Window/     main panel, floating mode
+  Window/     chassis window, rail, floating mode
   Panes/      SplitTree, PaneContainerView, PaneView, Elevation
   Terminal/   TerminalSurface and engine implementations
   Settings/   settings model, persistence, settings window
@@ -38,8 +38,10 @@ Operations: `split(pane, axis)`, `close(pane)`, `setRatio`, `neighbor(of:directi
 
 ### PaneContainerView
 - Holds `[PaneID: TerminalSurface]`.
-- Lays out frames from the tree with an `Elevation.gap` between panes and around the edges, below the transparent title bar. The gap is the divider's grab area.
-- Fills the workspace behind the panes with the background image, or the theme background shifted toward the foreground.
+- Is the pit: one sunken surface with 14pt corners that clip everything inside it. Panes fill it edge to edge, with no gaps.
+- Fills the pit with the background image, or the terminal background, so panes have no edges of their own.
+- Draws over the panes (`PitOverlay`, which takes no clicks) a seam of light at each divider that fades out toward both ends, and a shade cast inward from the pit's rim, deepest under its top edge.
+- An 8pt band centered on each seam is the divider's grab area.
 - Tells each pane whether it has focus. A pane tracks hover itself.
 - Moves existing views on tree change and never recreates them.
 - Assigns first responder after split, close and neighbor moves.
@@ -47,13 +49,13 @@ Operations: `split(pane, axis)`, `close(pane)`, `setRatio`, `neighbor(of:directi
 ### PaneView
 - Wraps one terminal view, inset by the padding, below a header.
 - The header shows the pane's directory, `~` for home and truncated from the start, and a dot in the theme's green while a command runs. Clicking it focuses the pane.
-- Fills the padding ring and draws a hairline edge, rounded at a radius that keeps the terminal's corners inside, so nothing clips the terminal.
-- The focused pane is at full strength, with a light rim brightest along its top edge.
+- Has no fill, outline or edge; it is told apart from its neighbors only by the seams.
+- The focused pane is at full strength.
 - Every other pane fades toward its background under a veil and loses most of its color through a grey layer in saturation blend mode. Hover lifts both halfway.
 - Animates only layer opacity: a quick spring when a pane lights up, a slow settle when it loses focus, a fast release when the pointer leaves.
 
 ### Elevation
-Tokens for gap, corner radius (concentric with the window's 16pt corners), the look of each pane state and its animation pace. `ElevationPalette` derives the workspace, veil and rim colors from the theme.
+Tokens for the pit's corner radius (concentric with the window's 26pt trailing corners), how far seams fade, the look of each pane state and its animation pace. `ElevationPalette` derives the pit, shade, seam, veil, chassis and rail colors from the theme.
 
 ### TerminalSurface
 The boundary between the app and an engine:
@@ -65,7 +67,18 @@ The boundary between the app and an engine:
 - applying visual settings.
 
 ### MainWindowController
-Creates the panel and applies floating mode.
+Creates the window and applies floating mode.
+
+### ChassisWindow
+- A borderless, resizable panel. `ChassisView` masks it to its silhouette: 30pt corners on the rail side, 26pt on the right. The system shadow follows that shape.
+- The body is shaded lighter toward the rail, with a hairline highlight along the top and left edges that fades out toward the bottom right.
+- Lays out `SpineView` along the left edge and the pane workspace inset beside it.
+
+### SpineView
+- The rail: window controls stacked at the top, the app name set vertically, and layout glyphs at the bottom.
+- The rail is 44pt wide. The window controls are single ink strokes: an open ensō closes, a horizon line minimizes, two corners zoom. They are faint at rest and darken while the pointer is near them; the ensō turns vermilion when it is the one under the pointer.
+- The glyphs split right, split down and toggle floating. They send their actions up the responder chain, so they reach the focused pane. The float glyph stays lit while floating.
+- Dragging the rail moves the window; double-clicking it zooms.
 
 ### Settings
 Observable model in `UserDefaults` and a SwiftUI Settings scene. Changes apply live.
