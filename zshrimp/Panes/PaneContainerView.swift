@@ -20,12 +20,33 @@ final class PaneContainerView: NSView {
         return view
     }()
     private var responderObservation: NSKeyValueObservation?
+    private var paneFrames: [PaneID: NSRect] = [:]
+    private var settings = Settings.shared.values
+    private var backgroundImage: NSImage?
 
     override var isFlipped: Bool { true }
 
     init() {
         super.init(frame: .zero)
+        // The aspect-filled image overflows the view and would paint over the title bar.
+        clipsToBounds = true
         tree.panes.forEach(addSurface)
+        apply(settings)
+        Task { [weak self] in
+            for await values in Observations({ Settings.shared.values }) {
+                guard let self else { break }
+                self.apply(values)
+            }
+        }
+    }
+
+    private func apply(_ values: Settings.Values) {
+        if values.backgroundImage != settings.backgroundImage || backgroundImage == nil {
+            backgroundImage = values.backgroundImage.isEmpty ? nil : NSImage(contentsOfFile: values.backgroundImage)
+        }
+        settings = values
+        needsLayout = true
+        needsDisplay = true
     }
 
     @available(*, unavailable)
@@ -70,6 +91,7 @@ final class PaneContainerView: NSView {
         surface.onExit = nil
         surface.terminate()
         surface.view.removeFromSuperview()
+        paneFrames[pane] = nil
 
         if tree.root == nil {
             onEmpty?()
@@ -112,6 +134,9 @@ final class PaneContainerView: NSView {
             }
         }
         if focusedPane == nil, let first = tree.panes.first { focus(first) }
+        // Lets the background opacity show the desktop through the window.
+        window?.isOpaque = false
+        window?.backgroundColor = .clear
     }
 
     override func layout() {
@@ -125,14 +150,44 @@ final class PaneContainerView: NSView {
                 width: frame.width - (frame.minX > bounds.minX ? half : 0) - (frame.maxX < bounds.maxX ? half : 0),
                 height: frame.height - (frame.minY > bounds.minY ? half : 0) - (frame.maxY < bounds.maxY ? half : 0)
             )
-            surfaces[pane]?.view.frame = backingAlignedRect(inset, options: .alignAllEdgesNearest)
+            let paneFrame = backingAlignedRect(inset, options: .alignAllEdgesNearest)
+            paneFrames[pane] = paneFrame
+            surfaces[pane]?.view.frame = paneFrame.insetBy(dx: settings.padding, dy: settings.padding)
         }
         window?.invalidateCursorRects(for: self)
+        needsDisplay = true
     }
 
+    // The terminal paints its own background, so only the padding ring around it is filled here.
     override func draw(_ dirtyRect: NSRect) {
+        if let backgroundImage { drawAspectFill(backgroundImage) }
+
+        settings.backgroundColor.setFill()
+        for (pane, frame) in paneFrames {
+            guard let view = surfaces[pane]?.view else { continue }
+            let ring = NSBezierPath(rect: frame)
+            ring.append(NSBezierPath(rect: view.frame))
+            ring.windingRule = .evenOdd
+            ring.fill()
+        }
+
         NSColor.separatorColor.setFill()
-        dirtyRect.fill()
+        for divider in tree.dividers(in: bounds) {
+            let half = Self.dividerWidth / 2
+            let rect = divider.axis == .horizontal
+                ? NSRect(x: divider.position - half, y: divider.parent.minY, width: Self.dividerWidth, height: divider.parent.height)
+                : NSRect(x: divider.parent.minX, y: divider.position - half, width: divider.parent.width, height: Self.dividerWidth)
+            backingAlignedRect(rect, options: .alignAllEdgesNearest).fill()
+        }
+    }
+
+    private func drawAspectFill(_ image: NSImage) {
+        let size = image.size
+        guard size.width > 0, size.height > 0 else { return }
+        let scale = max(bounds.width / size.width, bounds.height / size.height)
+        let drawn = NSSize(width: size.width * scale, height: size.height * scale)
+        let rect = NSRect(x: bounds.midX - drawn.width / 2, y: bounds.midY - drawn.height / 2, width: drawn.width, height: drawn.height)
+        image.draw(in: rect, from: .zero, operation: .sourceOver, fraction: 1, respectFlipped: true, hints: nil)
     }
 
     private func grabRect(_ divider: SplitTree.Divider) -> NSRect {
