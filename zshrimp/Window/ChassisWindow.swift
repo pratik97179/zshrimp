@@ -2,10 +2,14 @@ import AppKit
 
 /// A borderless panel shaped by its chassis. The system shadow follows the drawn silhouette.
 final class ChassisWindow: NSPanel {
-    init(content: NSView) {
+    private let isMain: Bool
+
+    /// The main window resizes and minimizes; an auxiliary one, such as Settings, keeps its size and only closes.
+    init(content: NSView, name: String = "zshrimp", isMain: Bool = true) {
+        self.isMain = isMain
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: 900, height: 560),
-            styleMask: [.closable, .miniaturizable, .resizable, .nonactivatingPanel],
+            styleMask: isMain ? [.closable, .miniaturizable, .resizable, .nonactivatingPanel] : [.closable, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
@@ -13,11 +17,38 @@ final class ChassisWindow: NSPanel {
         backgroundColor = .clear
         hasShadow = true
         minSize = NSSize(width: 360, height: 240)
-        contentView = ChassisView(content: content)
+        contentView = ChassisView(content: content, spine: SpineView(name: name, isMain: isMain))
     }
 
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { true }
+
+    // Without a title bar AppKit has no buttons to press, so its perform* variants only beep.
+    override func performClose(_ sender: Any?) {
+        if delegate?.windowShouldClose?(self) ?? true { close() }
+    }
+
+    // Escape closes an auxiliary window; in the main window the terminal takes it first.
+    override func cancelOperation(_ sender: Any?) {
+        if !isMain { performClose(sender) }
+    }
+
+    override func performMiniaturize(_ sender: Any?) {
+        miniaturize(sender)
+    }
+
+    private var unzoomedFrame: NSRect?
+
+    override func zoom(_ sender: Any?) {
+        guard styleMask.contains(.resizable), let visible = screen?.visibleFrame else { return }
+        if let unzoomedFrame, frame.equalTo(visible) {
+            setFrame(unzoomedFrame, display: true, animate: true)
+            self.unzoomedFrame = nil
+        } else {
+            unzoomedFrame = frame
+            setFrame(visible, display: true, animate: true)
+        }
+    }
 }
 
 /// The window's body: a rail on the left and the workspace set into the rest.
@@ -29,14 +60,15 @@ final class ChassisView: NSView {
     static let inset: CGFloat = 12
 
     private let content: NSView
-    private let spine = SpineView()
+    private let spine: SpineView
     private let body = CAGradientLayer()
     private let highlight = CAShapeLayer()
     private let silhouette = CAShapeLayer()
     private let highlightFade = CAGradientLayer()
 
-    init(content: NSView) {
+    init(content: NSView, spine: SpineView) {
         self.content = content
+        self.spine = spine
         super.init(frame: .zero)
         wantsLayer = true
         layer?.mask = silhouette

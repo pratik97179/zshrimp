@@ -23,7 +23,7 @@ final class PaneView: NSView {
         super.init(frame: .zero)
         wantsLayer = true
         addSubview(content)
-        label.font = .systemFont(ofSize: 11, weight: .medium)
+        label.font = Typography.paneLabel
         // The end of a path names where you are; the start is what to drop.
         label.lineBreakMode = .byTruncatingHead
         addSubview(label)
