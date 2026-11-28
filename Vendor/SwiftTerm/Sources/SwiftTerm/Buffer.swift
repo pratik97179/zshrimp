@@ -1471,7 +1471,20 @@ public final class Buffer {
         return _lines.withLine (_y + _yBase) { $0.textReachesCellBeforeLast (cols: cols) }
     }
 
-    func getLinesToRemove (oldCols: Int, newCols: Int, bufferAbsoluteY: Int,
+    /// The rows the shell redraws itself after a resize: the cursor row and,
+    /// while an OSC 133 prompt is being edited, every row from the prompt
+    /// start. A shell moves up by the rows it drew, so reflowing these leaves
+    /// stale prompt rows behind.
+    var shellRedrawnRows: ClosedRange<Int> {
+        let cursor = yBase + y
+        if semanticInput == .prompt || semanticInput == .armed,
+           let start = semanticPromptStartRow, start <= cursor {
+            return start...cursor
+        }
+        return cursor...cursor
+    }
+
+    func getLinesToRemove (oldCols: Int, newCols: Int, redrawnRows: ClosedRange<Int>,
                            nullCell: PackedCell) -> [Int]
     {
         // Gather all BufferLines that need to be removed from the Buffer here so that they can be
@@ -1500,7 +1513,7 @@ public final class Buffer {
 
             // If these lines contain the cursor don't touch them, the program will handle fixing up wrapped
             // lines with the cursor
-            if bufferAbsoluteY >= y && bufferAbsoluteY < i {
+            if redrawnRows.overlaps (y..<i) {
                 y += wrappedLines.count - 1
                 continue
             }
@@ -1585,7 +1598,7 @@ public final class Buffer {
     func reflowWider (_ oldCols: Int, _ oldRows: Int, _ newCols: Int, _ newRows: Int)
     {
         let toRemove = getLinesToRemove(
-            oldCols: oldCols, newCols: newCols, bufferAbsoluteY: yBase + y,
+            oldCols: oldCols, newCols: newCols, redrawnRows: shellRedrawnRows,
             nullCell: PackedCell())
         
         //print ("Lines to remove: \(toRemove) \(toRemove.count)")
@@ -1724,6 +1737,7 @@ public final class Buffer {
         // batched up and only committed once
         var toInsert : [InsertionSet] = []
         var countToInsert = 0
+        let redrawnRows = shellRedrawnRows
 
         // Go backwards as many lines may be trimmed and this will avoid considering them
         var y = lines.count-1
@@ -1747,9 +1761,7 @@ public final class Buffer {
 
             // If these lines contain the cursor don't touch them, the program will handle fixing up
             // wrapped lines with the cursor
-            let absoluteY = yBase + self.y
-
-            if absoluteY >= y && absoluteY < y + wrappedLines.count {
+            if redrawnRows.overlaps (y..<y + wrappedLines.count) {
                 // These rows keep their cells, and the resize then cuts
                 // them. A row that loses text does not continue on the next
                 // row for link lookup.

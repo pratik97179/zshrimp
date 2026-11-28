@@ -16,6 +16,7 @@
 ## Terminal engine
 - SwiftTerm provides the AppKit `TerminalView` and the PTY through `LocalProcessTerminalView`.
 - SwiftTerm is vendored as a local package without its build-info plugin, because Xcode reuses that plugin's index-build paths for real builds. Its two generated files are checked in under `Sources/SwiftTerm/Generated`. To update, copy `Sources/SwiftTerm` from the new tag and regenerate those files.
+- Local patch in `Buffer.swift`, to carry over on update: reflow skips the rows from the OSC 133 prompt start to the cursor while a prompt is being edited (`shellRedrawnRows`). zsh redraws the prompt by moving up the rows it drew, so a reflowed prompt would leave stale rows.
 - The app reaches the engine only through `TerminalSurface`. An in-house engine is developed alongside SwiftTerm behind the same type, and each pane can use either one.
 - The process is owned by its view. Panes are moved, never recreated.
 
