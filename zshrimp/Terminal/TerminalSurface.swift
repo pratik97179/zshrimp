@@ -40,9 +40,11 @@ final class TerminalSurface: LocalProcessTerminalViewDelegate {
         environment["TERM"] = "xterm-256color"
         environment["COLORTERM"] = "truecolor"
         environment["LANG"] = environment["LANG"] ?? "en_US.UTF-8"
+        let shell = environment["SHELL"] ?? "/bin/zsh"
+        ShellIntegration.apply(to: &environment, shell: shell)
 
         view.startProcess(
-            executable: environment["SHELL"] ?? "/bin/zsh",
+            executable: shell,
             args: ["-l"],
             environment: environment.map { "\($0.key)=\($0.value)" },
             currentDirectory: FileManager.default.homeDirectoryForCurrentUser.path

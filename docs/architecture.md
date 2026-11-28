@@ -46,6 +46,7 @@ Operations: `split(pane, axis)`, `close(pane)`, `setRatio`, `neighbor(of:directi
 The boundary between the app and an engine:
 - the `NSView` to place;
 - process start: `$SHELL -l`, cwd `$HOME`, `TERM=xterm-256color`, `COLORTERM=truecolor`, `LANG`;
+- zsh shell integration (`ShellIntegration`): zsh starts with `ZDOTDIR` set to `~/Library/Application Support/zshrimp/zsh`, whose `.zshenv` restores the user's `ZDOTDIR`, sources their `.zshenv` and adds hooks that send OSC 133 `A` at each prompt and `C` before each command;
 - process termination on pane close and app quit;
 - process exit and title change callbacks;
 - applying visual settings.
