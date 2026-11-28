@@ -11,14 +11,6 @@ final class PaneContainerView: NSView {
     private var paneViews: [PaneID: PaneView] = [:]
     private var titles: [PaneID: String] = [:]
     private var dragging: SplitTree.Divider?
-    private var pendingRatio: Double?
-    private let dragGuide: NSView = {
-        let view = NSView()
-        view.wantsLayer = true
-        view.layer?.backgroundColor = NSColor.controlAccentColor.cgColor
-        view.isHidden = true
-        return view
-    }()
     private let overlay = PitOverlay()
     private var responderObservation: NSKeyValueObservation?
     private var settings = Settings.shared.values
@@ -217,32 +209,20 @@ final class PaneContainerView: NSView {
         dragging = divider(at: convert(event.locationInWindow, from: nil))
     }
 
-    // Only a guide line moves while dragging; panes resize once on release so shells get one size change, not dozens.
+    // Panes follow the pointer live, like a window's live resize.
     override func mouseDragged(with event: NSEvent) {
         guard let dragging else { return }
         let point = convert(event.locationInWindow, from: nil)
         let parent = dragging.parent
-        let raw = dragging.axis == .horizontal
+        let ratio = dragging.axis == .horizontal
             ? (point.x - parent.minX) / parent.width
             : (point.y - parent.minY) / parent.height
-        let ratio = min(max(raw, SplitTree.ratioRange.lowerBound), SplitTree.ratioRange.upperBound)
-        pendingRatio = ratio
-
-        if dragGuide.superview == nil { addSubview(dragGuide) }
-        dragGuide.frame = dragging.axis == .horizontal
-            ? NSRect(x: parent.minX + parent.width * ratio - 1, y: parent.minY, width: 2, height: parent.height)
-            : NSRect(x: parent.minX, y: parent.minY + parent.height * ratio - 1, width: parent.width, height: 2)
-        dragGuide.isHidden = false
+        tree.setRatio(ratio, at: dragging.path)
+        needsLayout = true
     }
 
     override func mouseUp(with event: NSEvent) {
-        if let dragging, let pendingRatio {
-            tree.setRatio(pendingRatio, at: dragging.path)
-            needsLayout = true
-        }
         dragging = nil
-        pendingRatio = nil
-        dragGuide.isHidden = true
     }
 }
 
@@ -263,7 +243,10 @@ private final class PitOverlay: NSView {
     // A line of light that fades out toward both ends, so it separates without boxing anything in.
     private func drawSeam(_ divider: SplitTree.Divider, in context: CGContext) {
         let vertical = divider.axis == .horizontal
-        let parent = divider.parent
+        let parent = divider.parent.insetBy(
+            dx: vertical ? 0 : divider.parent.width * (1 - Elevation.seamSpan) / 2,
+            dy: vertical ? divider.parent.height * (1 - Elevation.seamSpan) / 2 : 0
+        )
         let line = backingAlignedRect(
             vertical
                 ? NSRect(x: divider.position - 0.5, y: parent.minY, width: 1, height: parent.height)

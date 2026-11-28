@@ -6,6 +6,8 @@ nonisolated enum Elevation {
     static let pitRadius: CGFloat = 14
     /// Seams fade to nothing this far from their ends.
     static let seamFade: CGFloat = 28
+    /// Share of the split a seam covers, centered, so it never runs edge to edge.
+    static let seamSpan: CGFloat = 0.6
 
     static func animation(keyPath: String, from: Float, to: Float, pace: Pace) -> CAAnimation {
         let animation: CABasicAnimation

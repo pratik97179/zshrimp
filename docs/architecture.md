@@ -6,7 +6,7 @@ One window holding many independent terminal sessions, arranged by arbitrary hor
 
 ```
 zshrimp/
-  App/        lifecycle, menu commands, key equivalents
+  App/        lifecycle, menu commands, key equivalents, chrome typography
   Window/     chassis window, rail, floating mode
   Panes/      SplitTree, PaneContainerView, PaneView, Elevation
   Terminal/   TerminalSurface and engine implementations
@@ -40,8 +40,8 @@ Operations: `split(pane, axis)`, `close(pane)`, `setRatio`, `neighbor(of:directi
 - Holds `[PaneID: TerminalSurface]`.
 - Is the pit: one sunken surface with 14pt corners that clip everything inside it. Panes fill it edge to edge, with no gaps.
 - Fills the pit with the background image, or the terminal background, so panes have no edges of their own.
-- Draws over the panes (`PitOverlay`, which takes no clicks) a seam of light at each divider that fades out toward both ends, and a shade cast inward from the pit's rim, deepest under its top edge.
-- An 8pt band centered on each seam is the divider's grab area.
+- Draws over the panes (`PitOverlay`, which takes no clicks) a seam of light at each divider, covering the middle 60% of the split and fading out toward both ends, and a shade cast inward from the pit's rim, deepest under its top edge.
+- An 8pt band centered on each seam is the divider's grab area. Dragging it resizes the panes live.
 - Tells each pane whether it has focus. A pane tracks hover itself.
 - Moves existing views on tree change and never recreates them.
 - Assigns first responder after split, close and neighbor moves.
@@ -76,9 +76,14 @@ Creates the window and applies floating mode.
 
 ### SpineView
 - The rail: window controls stacked at the top, the app name set vertically, and layout glyphs at the bottom.
-- The rail is 44pt wide. The window controls are single ink strokes: an open ensō closes, a horizon line minimizes, two corners zoom. They are faint at rest and darken while the pointer is near them; the ensō turns vermilion when it is the one under the pointer.
-- The glyphs split right, split down and toggle floating. They send their actions up the responder chain, so they reach the focused pane. The float glyph stays lit while floating.
+- The rail is 44pt wide. Each control (`RailControls.swift`) is an outlined ink mark on a round 19pt platform, softly raised: a light glint to the top-left and a soft shade to the bottom-right. Pressing sinks the platform flat. Marks are quiet at rest and ease to full ink near the pointer.
+- Close, minimize and resize stack at the top: a rounded cross that turns vermilion under the pointer, a bar, and a two-headed diagonal arrow.
+- Split right, split down and float sit at the bottom as outlined windows: divided down the middle, divided across, and one window lifted off another that rises further while floating. They send their actions up the responder chain, so they reach the focused pane.
+- Without a title bar AppKit's close, minimize and zoom only beep, so `ChassisWindow` implements them: close asks the delegate first, zoom toggles between the screen's visible frame and the previous frame.
 - Dragging the rail moves the window; double-clicking it zooms.
+- Chrome text is set in SF Pro Rounded (`Typography`): the rail name in 15pt semibold, spaced 2.5pt and reading bottom to top; pane header labels in 11pt medium; the Settings form in the rounded design. Terminal text keeps the monospaced face chosen in Settings.
+- Settings opens in its own `ChassisWindow`, fixed in size, with a rail that only closes it (Escape closes it too) and the name "settings". The form sits in a pit like the terminals'. It has no cards: lowercase headings stand to the left, and rows are parted by the same faded seams as panes. Steppers and colour swatches sit on the rail's round platforms, menus show the choice in ink with a drawn chevron, and actions are plain words.
+- The app quits when the main window closes. AppKit's last-window rule is off: it ignores panels, so closing any other window, even a tooltip, would otherwise quit the app.
 
 ### Settings
 Observable model in `UserDefaults` and a SwiftUI Settings scene. Changes apply live.
