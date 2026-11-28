@@ -1,14 +1,15 @@
 import AppKit
 
 final class PaneContainerView: NSView {
-    private static let dividerWidth: CGFloat = 1
-    private static let grabWidth: CGFloat = 6
+    // The gap between panes is the divider's grab area.
+    private static let grabWidth = max(Elevation.gap, 6)
 
     var onEmpty: (() -> Void)?
     var onTitleChange: ((String) -> Void)?
 
     private var tree = SplitTree()
     private var surfaces: [PaneID: TerminalSurface] = [:]
+    private var paneViews: [PaneID: PaneView] = [:]
     private var titles: [PaneID: String] = [:]
     private var dragging: SplitTree.Divider?
     private var pendingRatio: Double?
@@ -20,14 +21,15 @@ final class PaneContainerView: NSView {
         return view
     }()
     private var responderObservation: NSKeyValueObservation?
-    private var paneFrames: [PaneID: NSRect] = [:]
     private var settings = Settings.shared.values
+    private var palette = ElevationPalette(Settings.shared.values)
     private var backgroundImage: NSImage?
 
     override var isFlipped: Bool { true }
 
     init() {
         super.init(frame: .zero)
+        wantsLayer = true
         // The aspect-filled image overflows the view and would paint over the title bar.
         clipsToBounds = true
         tree.panes.forEach(addSurface)
@@ -45,6 +47,8 @@ final class PaneContainerView: NSView {
             backgroundImage = values.backgroundImage.isEmpty ? nil : NSImage(contentsOfFile: values.backgroundImage)
         }
         settings = values
+        palette = ElevationPalette(values)
+        for view in paneViews.values { view.apply(values, palette) }
         needsLayout = true
         needsDisplay = true
     }
@@ -90,8 +94,7 @@ final class PaneContainerView: NSView {
         let next = tree.close(pane)
         surface.onExit = nil
         surface.terminate()
-        surface.view.removeFromSuperview()
-        paneFrames[pane] = nil
+        paneViews.removeValue(forKey: pane)?.removeFromSuperview()
 
         if tree.root == nil {
             onEmpty?()
@@ -104,7 +107,10 @@ final class PaneContainerView: NSView {
     private func addSurface(_ pane: PaneID) {
         let surface = TerminalSurface()
         surfaces[pane] = surface
-        addSubview(surface.view)
+        let paneView = PaneView(content: surface.view)
+        paneView.apply(settings, palette)
+        paneViews[pane] = paneView
+        addSubview(paneView)
         surface.onExit = { [weak self] in self?.close(pane) }
         surface.onTitleChange = { [weak self] title in self?.titleChanged(title, for: pane) }
         needsLayout = true
@@ -120,6 +126,11 @@ final class PaneContainerView: NSView {
         window?.makeFirstResponder(surfaces[pane]?.view)
     }
 
+    private func updateFocus() {
+        let focused = focusedPane
+        for (pane, view) in paneViews { view.setFocused(pane == focused) }
+    }
+
     private func titleChanged(_ title: String, for pane: PaneID) {
         titles[pane] = title
         if pane == focusedPane { onTitleChange?(title) }
@@ -129,7 +140,9 @@ final class PaneContainerView: NSView {
         super.viewDidMoveToWindow()
         responderObservation = window?.observe(\.firstResponder) { [weak self] _, _ in
             MainActor.assumeIsolated {
-                guard let self, let pane = self.focusedPane else { return }
+                guard let self else { return }
+                self.updateFocus()
+                guard let pane = self.focusedPane else { return }
                 self.onTitleChange?(self.titles[pane] ?? "zshrimp")
             }
         }
@@ -141,43 +154,33 @@ final class PaneContainerView: NSView {
 
     override func layout() {
         super.layout()
-        let half = Self.dividerWidth / 2
-        for (pane, frame) in tree.frames(in: bounds) {
-            // Leave half a divider on every edge shared with another pane.
-            let inset = NSRect(
-                x: frame.minX + (frame.minX > bounds.minX ? half : 0),
-                y: frame.minY + (frame.minY > bounds.minY ? half : 0),
-                width: frame.width - (frame.minX > bounds.minX ? half : 0) - (frame.maxX < bounds.maxX ? half : 0),
-                height: frame.height - (frame.minY > bounds.minY ? half : 0) - (frame.maxY < bounds.maxY ? half : 0)
-            )
-            let paneFrame = backingAlignedRect(inset, options: .alignAllEdgesNearest)
-            paneFrames[pane] = paneFrame
-            surfaces[pane]?.view.frame = paneFrame.insetBy(dx: settings.padding, dy: settings.padding)
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        for (pane, frame) in tree.frames(in: workspace) {
+            guard let view = paneViews[pane] else { continue }
+            let half = Elevation.gap / 2
+            view.frame = backingAlignedRect(frame.insetBy(dx: half, dy: half), options: .alignAllEdgesNearest)
         }
+        CATransaction.commit()
         window?.invalidateCursorRects(for: self)
         needsDisplay = true
     }
 
-    // The terminal paints its own background, so only the padding ring around it is filled here.
+    /// The tree is laid out half a gap in from the edges, so every pane ends up a full gap from the window and from its neighbors.
+    private var workspace: NSRect {
+        // Content runs under the transparent title bar; panes start below it.
+        var area = bounds
+        area.origin.y += safeAreaInsets.top
+        area.size.height -= safeAreaInsets.top
+        return area.insetBy(dx: Elevation.gap / 2, dy: Elevation.gap / 2)
+    }
+
     override func draw(_ dirtyRect: NSRect) {
-        if let backgroundImage { drawAspectFill(backgroundImage) }
-
-        settings.backgroundColor.setFill()
-        for (pane, frame) in paneFrames {
-            guard let view = surfaces[pane]?.view else { continue }
-            let ring = NSBezierPath(rect: frame)
-            ring.append(NSBezierPath(rect: view.frame))
-            ring.windingRule = .evenOdd
-            ring.fill()
-        }
-
-        NSColor.separatorColor.setFill()
-        for divider in tree.dividers(in: bounds) {
-            let half = Self.dividerWidth / 2
-            let rect = divider.axis == .horizontal
-                ? NSRect(x: divider.position - half, y: divider.parent.minY, width: Self.dividerWidth, height: divider.parent.height)
-                : NSRect(x: divider.parent.minX, y: divider.position - half, width: divider.parent.width, height: Self.dividerWidth)
-            backingAlignedRect(rect, options: .alignAllEdgesNearest).fill()
+        if let backgroundImage {
+            drawAspectFill(backgroundImage)
+        } else {
+            palette.workspace.setFill()
+            bounds.fill()
         }
     }
 
@@ -198,7 +201,7 @@ final class PaneContainerView: NSView {
     }
 
     private func divider(at point: NSPoint) -> SplitTree.Divider? {
-        tree.dividers(in: bounds).last { grabRect($0).contains(point) }
+        tree.dividers(in: workspace).last { grabRect($0).contains(point) }
     }
 
     override func hitTest(_ point: NSPoint) -> NSView? {
@@ -207,7 +210,7 @@ final class PaneContainerView: NSView {
     }
 
     override func resetCursorRects() {
-        for divider in tree.dividers(in: bounds) {
+        for divider in tree.dividers(in: workspace) {
             addCursorRect(grabRect(divider), cursor: divider.axis == .horizontal ? .resizeLeftRight : .resizeUpDown)
         }
     }

@@ -11,11 +11,14 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     init() {
         let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 900, height: 560),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable, .nonactivatingPanel],
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
         panel.title = "zshrimp"
+        // One surface from edge to edge: the traffic lights sit on the workspace.
+        panel.titlebarAppearsTransparent = true
+        panel.titleVisibility = .hidden
         panel.hidesOnDeactivate = false
         panel.contentView = panes
         panel.center()
