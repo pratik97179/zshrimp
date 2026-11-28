@@ -20,7 +20,7 @@ final class TerminalSurface: LocalProcessTerminalViewDelegate {
     private func apply(_ values: Settings.Values) {
         view.font = values.font
         if let foreground = NSColor(hex: values.foreground) { view.nativeForegroundColor = foreground }
-        if let background = NSColor(hex: values.background) { view.nativeBackgroundColor = background }
+        view.nativeBackgroundColor = values.backgroundColor
     }
 
     func start() {

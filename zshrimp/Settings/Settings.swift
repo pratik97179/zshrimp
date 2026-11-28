@@ -9,6 +9,11 @@ final class Settings {
         var fontSize = 13.0
         var foreground = "#D9D9D9"
         var background = "#000000"
+        /// How much the background color covers what is behind it: the desktop or the background image.
+        var opacity = 1.0
+        var padding = 4.0
+        /// Empty means no image.
+        var backgroundImage = ""
         var isFloating = false
     }
 
@@ -20,8 +25,17 @@ final class Settings {
     }
 
     private init() {
-        let data = UserDefaults.standard.data(forKey: Self.key)
-        values = data.flatMap { try? JSONDecoder().decode(Values.self, from: $0) } ?? Values()
+        values = UserDefaults.standard.data(forKey: Self.key).flatMap(Self.decode) ?? Values()
+    }
+
+    // Saved keys override the defaults, so settings added later don't reset the ones already saved.
+    private static func decode(_ data: Data) -> Values? {
+        guard
+            let defaults = try? JSONSerialization.jsonObject(with: JSONEncoder().encode(Values())) as? [String: Any],
+            let saved = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let merged = try? JSONSerialization.data(withJSONObject: defaults.merging(saved) { $1 })
+        else { return nil }
+        return try? JSONDecoder().decode(Values.self, from: merged)
     }
 
     private func save() {
@@ -34,6 +48,10 @@ final class Settings {
 extension Settings.Values {
     var font: NSFont {
         NSFont(name: fontName, size: fontSize) ?? .monospacedSystemFont(ofSize: fontSize, weight: .regular)
+    }
+
+    var backgroundColor: NSColor {
+        (NSColor(hex: background) ?? .black).withAlphaComponent(opacity)
     }
 }
 
