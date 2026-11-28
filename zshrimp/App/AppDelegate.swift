@@ -42,6 +42,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         editMenu.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
         editMenu.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
 
+        let shellMenu = NSMenu(title: "Shell")
+        shellMenu.addItem(withTitle: "Split Right", action: #selector(PaneContainerView.splitRight(_:)), keyEquivalent: "d")
+        shellMenu.addItem(withTitle: "Split Down", action: #selector(PaneContainerView.splitDown(_:)), keyEquivalent: "D")
+        shellMenu.addItem(.separator())
+        shellMenu.addItem(withTitle: "Close Pane", action: #selector(PaneContainerView.closePane(_:)), keyEquivalent: "w")
+        shellMenu.addItem(.separator())
+        let focusItems: [(String, Selector, Int)] = [
+            ("Focus Left Pane", #selector(PaneContainerView.focusLeft(_:)), NSLeftArrowFunctionKey),
+            ("Focus Right Pane", #selector(PaneContainerView.focusRight(_:)), NSRightArrowFunctionKey),
+            ("Focus Pane Above", #selector(PaneContainerView.focusUp(_:)), NSUpArrowFunctionKey),
+            ("Focus Pane Below", #selector(PaneContainerView.focusDown(_:)), NSDownArrowFunctionKey),
+        ]
+        for (title, action, key) in focusItems {
+            let item = shellMenu.addItem(withTitle: title, action: action, keyEquivalent: String(Character(UnicodeScalar(key)!)))
+            item.keyEquivalentModifierMask = [.command, .option]
+        }
+
         let windowMenu = NSMenu(title: "Window")
         windowMenu.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
         windowMenu.addItem(.separator())
@@ -49,7 +66,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.windowsMenu = windowMenu
 
         let mainMenu = NSMenu()
-        for menu in [appMenu, editMenu, windowMenu] {
+        for menu in [appMenu, shellMenu, editMenu, windowMenu] {
             let item = NSMenuItem()
             item.submenu = menu
             mainMenu.addItem(item)

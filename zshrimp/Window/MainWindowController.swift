@@ -1,7 +1,7 @@
 import AppKit
 
 final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuItemValidation {
-    private let surface = TerminalSurface()
+    private let panes = PaneContainerView()
 
     private var isFloating = false {
         didSet { applyFloating() }
@@ -16,15 +16,13 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         )
         panel.title = "zshrimp"
         panel.hidesOnDeactivate = false
-        panel.contentView = surface.view
-        panel.initialFirstResponder = surface.view
+        panel.contentView = panes
         panel.center()
         super.init(window: panel)
 
         panel.delegate = self
-        surface.onTitleChange = { [weak panel] title in panel?.title = title }
-        surface.onExit = { [weak panel] in panel?.close() }
-        surface.start()
+        panes.onTitleChange = { [weak panel] title in panel?.title = title }
+        panes.onEmpty = { [weak panel] in panel?.close() }
     }
 
     @available(*, unavailable)
@@ -33,7 +31,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     }
 
     func terminateSessions() {
-        surface.terminate()
+        panes.terminateAll()
     }
 
     @objc func toggleFloating(_ sender: Any?) {
@@ -59,6 +57,6 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     }
 
     func windowWillClose(_ notification: Notification) {
-        surface.terminate()
+        panes.terminateAll()
     }
 }
