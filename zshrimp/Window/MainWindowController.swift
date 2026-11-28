@@ -10,7 +10,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     init() {
         let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 900, height: 560),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
@@ -51,6 +51,11 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         guard let window else { return }
         window.level = isFloating ? .floating : .normal
         window.collectionBehavior = isFloating ? [.canJoinAllSpaces, .fullScreenAuxiliary] : []
+    }
+
+    // Non-activating is fixed at creation and needed to float over full-screen apps; normal mode activates by hand.
+    func windowDidBecomeKey(_ notification: Notification) {
+        if !isFloating { NSApp.activate() }
     }
 
     func windowWillClose(_ notification: Notification) {
