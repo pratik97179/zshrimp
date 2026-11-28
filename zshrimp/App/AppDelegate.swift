@@ -1,8 +1,10 @@
 import AppKit
+import SwiftUI
 
 @main
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var windowController: MainWindowController?
+    private var settingsWindow: NSWindow?
 
     static func main() {
         let app = NSApplication.shared
@@ -31,8 +33,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         windowController?.terminateSessions()
     }
 
+    @objc func showSettings(_ sender: Any?) {
+        if settingsWindow == nil {
+            let host = NSHostingController(rootView: SettingsView())
+            host.sizingOptions = .preferredContentSize
+            let window = NSWindow(contentViewController: host)
+            window.title = "Settings"
+            window.styleMask = [.titled, .closable]
+            // Stays above the terminal when it floats.
+            window.level = .floating
+            window.isReleasedWhenClosed = false
+            window.center()
+            settingsWindow = window
+        }
+        settingsWindow?.makeKeyAndOrderFront(nil)
+        NSApp.activate()
+    }
+
     private func makeMainMenu() -> NSMenu {
         let appMenu = NSMenu()
+        appMenu.addItem(withTitle: "Settings…", action: #selector(showSettings(_:)), keyEquivalent: ",")
+        appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "Hide zshrimp", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "Quit zshrimp", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
