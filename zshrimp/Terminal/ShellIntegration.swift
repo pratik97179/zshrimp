@@ -1,6 +1,7 @@
 import Foundation
 
-/// Makes zsh mark its prompt with OSC 133, so a resize leaves the prompt rows for zsh to redraw.
+/// Makes zsh mark its prompt with OSC 133, so a resize leaves the prompt rows for zsh to redraw,
+/// and report its directory with OSC 7.
 /// zsh starts with ZDOTDIR pointing at a folder whose .zshenv puts the user's ZDOTDIR back,
 /// loads their .zshenv, and adds the hooks; zsh then reads the user's other dotfiles as usual.
 enum ShellIntegration {
@@ -9,7 +10,7 @@ enum ShellIntegration {
     unset ZSHRIMP_ZDOTDIR
     [[ -f ${ZDOTDIR:-$HOME}/.zshenv ]] && source ${ZDOTDIR:-$HOME}/.zshenv
     if [[ -o interactive ]]; then
-      _zshrimp_prompt_start() { print -n '\e]133;A\a' }
+      _zshrimp_prompt_start() { print -n "\e]7;file://${HOST}${PWD}\a\e]133;A\a" }
       _zshrimp_command_start() { print -n '\e]133;C\a' }
       autoload -Uz add-zsh-hook
       add-zsh-hook precmd _zshrimp_prompt_start

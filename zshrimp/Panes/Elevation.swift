@@ -48,6 +48,8 @@ struct ElevationPalette {
     let workspace: NSColor
     let veil: NSColor
     let rim: NSColor
+    let label: NSColor
+    let running: NSColor
 
     init(_ values: Settings.Values) {
         let background = NSColor(hex: values.background) ?? .black
@@ -58,5 +60,8 @@ struct ElevationPalette {
         // Fading text toward its own background recedes it without tinting the surface.
         veil = background.withAlphaComponent(values.opacity)
         rim = foreground.withAlphaComponent(isLight ? 0.5 : 0.55)
+        label = foreground.withAlphaComponent(0.55)
+        // The theme's green, so the dot belongs to the palette the shell already uses.
+        running = values.palette.count > 2 ? NSColor(hex: values.palette[2]) ?? .systemGreen : .systemGreen
     }
 }

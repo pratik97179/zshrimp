@@ -1,9 +1,13 @@
 import AppKit
 import QuartzCore
 
-/// A pane's surface: the padding ring around its terminal, the light on its rim and the veil over it at rest. Only layer opacity animates; the terminal view is never touched.
+/// A pane's surface: a header with its directory and a running dot, the padding ring around its terminal, the light on its rim and the veil over it at rest. Only layer opacity animates; the terminal view is never touched.
 final class PaneView: NSView {
+    static let headerHeight: CGFloat = 24
     let content: NSView
+    private let label = NSTextField(labelWithString: "")
+    private let runningDot = CAShapeLayer()
+    private var isRunning = false
     private let fill = CAShapeLayer()
     private let veil = CAShapeLayer()
     // A grey fill in saturation blend mode drains the color from whatever is beneath it.
@@ -21,6 +25,10 @@ final class PaneView: NSView {
         super.init(frame: .zero)
         wantsLayer = true
         addSubview(content)
+        label.font = .systemFont(ofSize: 11, weight: .medium)
+        // The end of a path names where you are; the start is what to drop.
+        label.lineBreakMode = .byTruncatingHead
+        addSubview(label)
 
         fill.fillRule = .evenOdd
         fill.zPosition = -1
@@ -35,7 +43,9 @@ final class PaneView: NSView {
         rim.startPoint = CGPoint(x: 0.5, y: 0)
         rim.endPoint = CGPoint(x: 0.5, y: 1)
         rim.locations = [0, 0.5, 1]
-        [fill, desaturation, veil, rim].forEach { layer?.addSublayer($0) }
+        runningDot.zPosition = 0.5
+        runningDot.opacity = 0
+        [fill, runningDot, desaturation, veil, rim].forEach { layer?.addSublayer($0) }
 
         rim.opacity = look.rim
         veil.opacity = look.veil
@@ -57,9 +67,28 @@ final class PaneView: NSView {
         CATransaction.setDisableActions(true)
         fill.fillColor = values.backgroundColor.cgColor
         veil.fillColor = palette.veil.cgColor
+        runningDot.fillColor = palette.running.cgColor
+        label.textColor = palette.label
         rim.colors = [palette.rim, palette.rim.withAlphaComponent(palette.rim.alphaComponent * 0.5), palette.rim.withAlphaComponent(palette.rim.alphaComponent * 0.2)].map(\.cgColor)
         CATransaction.commit()
         needsLayout = true
+    }
+
+    func setDirectory(_ path: String) {
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        label.stringValue = path == home ? "~" : path.hasPrefix(home + "/") ? "~" + path.dropFirst(home.count) : path
+        label.toolTip = path
+    }
+
+    func setRunning(_ running: Bool) {
+        guard running != isRunning else { return }
+        isRunning = running
+        animate(runningDot, to: running ? 1 : 0, running ? .answer : .release)
+    }
+
+    // The header is not the terminal, but a click on it still means this pane.
+    override func mouseDown(with event: NSEvent) {
+        window?.makeFirstResponder(content)
     }
 
     func setFocused(_ focused: Bool) {
@@ -104,7 +133,8 @@ final class PaneView: NSView {
 
     override func layout() {
         super.layout()
-        content.frame = bounds.insetBy(dx: padding, dy: padding)
+        let header = Self.headerHeight
+        content.frame = NSRect(x: padding, y: header, width: bounds.width - padding * 2, height: bounds.height - header - padding)
 
         CATransaction.begin()
         CATransaction.setDisableActions(true)
@@ -126,6 +156,14 @@ final class PaneView: NSView {
         rimStroke.frame = bounds
         rimStroke.lineWidth = line
         rimStroke.path = CGPath(roundedRect: inset, cornerWidth: max(0, radius - line / 2), cornerHeight: max(0, radius - line / 2), transform: nil)
+
+        // Header contents line up with the curve of the top corners, not the terminal's padding.
+        let side = max(padding, radius * 0.75)
+        let dot: CGFloat = 6
+        runningDot.frame = bounds
+        runningDot.path = CGPath(ellipseIn: CGRect(x: bounds.maxX - side - dot, y: (header - dot) / 2, width: dot, height: dot), transform: nil)
+        let height = label.intrinsicContentSize.height
+        label.frame = NSRect(x: side, y: (header - height) / 2, width: max(0, bounds.width - side * 2 - dot - 8), height: height)
 
         CATransaction.commit()
     }

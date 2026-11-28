@@ -45,7 +45,8 @@ Operations: `split(pane, axis)`, `close(pane)`, `setRatio`, `neighbor(of:directi
 - Assigns first responder after split, close and neighbor moves.
 
 ### PaneView
-- Wraps one terminal view, inset by the padding.
+- Wraps one terminal view, inset by the padding, below a header.
+- The header shows the pane's directory, `~` for home and truncated from the start, and a dot in the theme's green while a command runs. Clicking it focuses the pane.
 - Fills the padding ring and draws a hairline edge, rounded at a radius that keeps the terminal's corners inside, so nothing clips the terminal.
 - The focused pane is at full strength, with a light rim brightest along its top edge.
 - Every other pane fades toward its background under a veil and loses most of its color through a grey layer in saturation blend mode. Hover lifts both halfway.
@@ -58,9 +59,9 @@ Tokens for gap, corner radius (concentric with the window's 16pt corners), the l
 The boundary between the app and an engine:
 - the `NSView` to place;
 - process start: `$SHELL -l`, cwd `$HOME`, `TERM=xterm-256color`, `COLORTERM=truecolor`, `LANG`;
-- zsh shell integration (`ShellIntegration`): zsh starts with `ZDOTDIR` set to `~/Library/Application Support/zshrimp/zsh`, whose `.zshenv` restores the user's `ZDOTDIR`, sources their `.zshenv` and adds hooks that send OSC 133 `A` at each prompt and `C` before each command;
+- zsh shell integration (`ShellIntegration`): zsh starts with `ZDOTDIR` set to `~/Library/Application Support/zshrimp/zsh`, whose `.zshenv` restores the user's `ZDOTDIR`, sources their `.zshenv` and adds hooks that send OSC 7 with the directory and OSC 133 `A` at each prompt, and OSC 133 `C` before each command;
 - process termination on pane close and app quit;
-- process exit, title change and running change callbacks; `isRunning` is set by OSC 133 `C` and cleared by `A` or `D`, observed through SwiftTerm's `observeOscEvents`;
+- process exit, title, directory and running change callbacks; the directory comes from OSC 7; `isRunning` is set by OSC 133 `C` and cleared by `A` or `D`, observed through SwiftTerm's `observeOscEvents`;
 - applying visual settings.
 
 ### MainWindowController

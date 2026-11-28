@@ -113,6 +113,9 @@ final class PaneContainerView: NSView {
         addSubview(paneView)
         surface.onExit = { [weak self] in self?.close(pane) }
         surface.onTitleChange = { [weak self] title in self?.titleChanged(title, for: pane) }
+        surface.onDirectoryChange = { [weak paneView] path in paneView?.setDirectory(path) }
+        surface.onRunningChange = { [weak paneView] running in paneView?.setRunning(running) }
+        paneView.setDirectory(FileManager.default.homeDirectoryForCurrentUser.path)
         needsLayout = true
         surface.start()
     }
