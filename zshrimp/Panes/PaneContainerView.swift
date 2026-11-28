@@ -1,35 +1,32 @@
 import AppKit
 
 final class PaneContainerView: NSView {
-    private static let dividerWidth: CGFloat = 1
-    private static let grabWidth: CGFloat = 6
+    private static let grabWidth: CGFloat = 8
 
     var onEmpty: (() -> Void)?
     var onTitleChange: ((String) -> Void)?
 
     private var tree = SplitTree()
     private var surfaces: [PaneID: TerminalSurface] = [:]
+    private var paneViews: [PaneID: PaneView] = [:]
     private var titles: [PaneID: String] = [:]
     private var dragging: SplitTree.Divider?
-    private var pendingRatio: Double?
-    private let dragGuide: NSView = {
-        let view = NSView()
-        view.wantsLayer = true
-        view.layer?.backgroundColor = NSColor.controlAccentColor.cgColor
-        view.isHidden = true
-        return view
-    }()
+    private let overlay = PitOverlay()
     private var responderObservation: NSKeyValueObservation?
-    private var paneFrames: [PaneID: NSRect] = [:]
     private var settings = Settings.shared.values
+    private var palette = ElevationPalette(Settings.shared.values)
     private var backgroundImage: NSImage?
 
     override var isFlipped: Bool { true }
 
     init() {
         super.init(frame: .zero)
-        // The aspect-filled image overflows the view and would paint over the title bar.
+        wantsLayer = true
+        // The pit's rounded edge clips the panes and the aspect-filled image alike.
         clipsToBounds = true
+        layer?.cornerRadius = Elevation.pitRadius
+        layer?.cornerCurve = .continuous
+        addSubview(overlay)
         tree.panes.forEach(addSurface)
         apply(settings)
         Task { [weak self] in
@@ -45,6 +42,9 @@ final class PaneContainerView: NSView {
             backgroundImage = values.backgroundImage.isEmpty ? nil : NSImage(contentsOfFile: values.backgroundImage)
         }
         settings = values
+        palette = ElevationPalette(values)
+        for view in paneViews.values { view.apply(values, palette) }
+        overlay.palette = palette
         needsLayout = true
         needsDisplay = true
     }
@@ -90,8 +90,7 @@ final class PaneContainerView: NSView {
         let next = tree.close(pane)
         surface.onExit = nil
         surface.terminate()
-        surface.view.removeFromSuperview()
-        paneFrames[pane] = nil
+        paneViews.removeValue(forKey: pane)?.removeFromSuperview()
 
         if tree.root == nil {
             onEmpty?()
@@ -104,9 +103,15 @@ final class PaneContainerView: NSView {
     private func addSurface(_ pane: PaneID) {
         let surface = TerminalSurface()
         surfaces[pane] = surface
-        addSubview(surface.view)
+        let paneView = PaneView(content: surface.view)
+        paneView.apply(settings, palette)
+        paneViews[pane] = paneView
+        addSubview(paneView, positioned: .below, relativeTo: overlay)
         surface.onExit = { [weak self] in self?.close(pane) }
         surface.onTitleChange = { [weak self] title in self?.titleChanged(title, for: pane) }
+        surface.onDirectoryChange = { [weak paneView] path in paneView?.setDirectory(path) }
+        surface.onRunningChange = { [weak paneView] running in paneView?.setRunning(running) }
+        paneView.setDirectory(FileManager.default.homeDirectoryForCurrentUser.path)
         needsLayout = true
         surface.start()
     }
@@ -120,6 +125,11 @@ final class PaneContainerView: NSView {
         window?.makeFirstResponder(surfaces[pane]?.view)
     }
 
+    private func updateFocus() {
+        let focused = focusedPane
+        for (pane, view) in paneViews { view.setFocused(pane == focused) }
+    }
+
     private func titleChanged(_ title: String, for pane: PaneID) {
         titles[pane] = title
         if pane == focusedPane { onTitleChange?(title) }
@@ -129,7 +139,9 @@ final class PaneContainerView: NSView {
         super.viewDidMoveToWindow()
         responderObservation = window?.observe(\.firstResponder) { [weak self] _, _ in
             MainActor.assumeIsolated {
-                guard let self, let pane = self.focusedPane else { return }
+                guard let self else { return }
+                self.updateFocus()
+                guard let pane = self.focusedPane else { return }
                 self.onTitleChange?(self.titles[pane] ?? "zshrimp")
             }
         }
@@ -141,43 +153,24 @@ final class PaneContainerView: NSView {
 
     override func layout() {
         super.layout()
-        let half = Self.dividerWidth / 2
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
         for (pane, frame) in tree.frames(in: bounds) {
-            // Leave half a divider on every edge shared with another pane.
-            let inset = NSRect(
-                x: frame.minX + (frame.minX > bounds.minX ? half : 0),
-                y: frame.minY + (frame.minY > bounds.minY ? half : 0),
-                width: frame.width - (frame.minX > bounds.minX ? half : 0) - (frame.maxX < bounds.maxX ? half : 0),
-                height: frame.height - (frame.minY > bounds.minY ? half : 0) - (frame.maxY < bounds.maxY ? half : 0)
-            )
-            let paneFrame = backingAlignedRect(inset, options: .alignAllEdgesNearest)
-            paneFrames[pane] = paneFrame
-            surfaces[pane]?.view.frame = paneFrame.insetBy(dx: settings.padding, dy: settings.padding)
+            paneViews[pane]?.frame = backingAlignedRect(frame, options: .alignAllEdgesNearest)
         }
+        CATransaction.commit()
+        overlay.frame = bounds
+        overlay.dividers = tree.dividers(in: bounds)
         window?.invalidateCursorRects(for: self)
         needsDisplay = true
     }
 
-    // The terminal paints its own background, so only the padding ring around it is filled here.
     override func draw(_ dirtyRect: NSRect) {
-        if let backgroundImage { drawAspectFill(backgroundImage) }
-
-        settings.backgroundColor.setFill()
-        for (pane, frame) in paneFrames {
-            guard let view = surfaces[pane]?.view else { continue }
-            let ring = NSBezierPath(rect: frame)
-            ring.append(NSBezierPath(rect: view.frame))
-            ring.windingRule = .evenOdd
-            ring.fill()
-        }
-
-        NSColor.separatorColor.setFill()
-        for divider in tree.dividers(in: bounds) {
-            let half = Self.dividerWidth / 2
-            let rect = divider.axis == .horizontal
-                ? NSRect(x: divider.position - half, y: divider.parent.minY, width: Self.dividerWidth, height: divider.parent.height)
-                : NSRect(x: divider.parent.minX, y: divider.position - half, width: divider.parent.width, height: Self.dividerWidth)
-            backingAlignedRect(rect, options: .alignAllEdgesNearest).fill()
+        if let backgroundImage {
+            drawAspectFill(backgroundImage)
+        } else {
+            palette.pit.setFill()
+            bounds.fill()
         }
     }
 
@@ -216,31 +209,83 @@ final class PaneContainerView: NSView {
         dragging = divider(at: convert(event.locationInWindow, from: nil))
     }
 
-    // Only a guide line moves while dragging; panes resize once on release so shells get one size change, not dozens.
+    // Panes follow the pointer live, like a window's live resize.
     override func mouseDragged(with event: NSEvent) {
         guard let dragging else { return }
         let point = convert(event.locationInWindow, from: nil)
         let parent = dragging.parent
-        let raw = dragging.axis == .horizontal
+        let ratio = dragging.axis == .horizontal
             ? (point.x - parent.minX) / parent.width
             : (point.y - parent.minY) / parent.height
-        let ratio = min(max(raw, SplitTree.ratioRange.lowerBound), SplitTree.ratioRange.upperBound)
-        pendingRatio = ratio
-
-        if dragGuide.superview == nil { addSubview(dragGuide) }
-        dragGuide.frame = dragging.axis == .horizontal
-            ? NSRect(x: parent.minX + parent.width * ratio - 1, y: parent.minY, width: 2, height: parent.height)
-            : NSRect(x: parent.minX, y: parent.minY + parent.height * ratio - 1, width: parent.width, height: 2)
-        dragGuide.isHidden = false
+        tree.setRatio(ratio, at: dragging.path)
+        needsLayout = true
     }
 
     override func mouseUp(with event: NSEvent) {
-        if let dragging, let pendingRatio {
-            tree.setRatio(pendingRatio, at: dragging.path)
-            needsLayout = true
-        }
         dragging = nil
-        pendingRatio = nil
-        dragGuide.isHidden = true
+    }
+}
+
+/// Drawn over the panes: the seams between them and the shade that presses the pit into the chassis. Takes no clicks.
+private final class PitOverlay: NSView {
+    var palette = ElevationPalette(Settings.shared.values) { didSet { needsDisplay = true } }
+    var dividers: [SplitTree.Divider] = [] { didSet { needsDisplay = true } }
+
+    override var isFlipped: Bool { true }
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+    override func draw(_ dirtyRect: NSRect) {
+        guard let context = NSGraphicsContext.current?.cgContext else { return }
+        for divider in dividers { drawSeam(divider, in: context) }
+        drawShade(in: context)
+    }
+
+    // A line of light that fades out toward both ends, so it separates without boxing anything in.
+    private func drawSeam(_ divider: SplitTree.Divider, in context: CGContext) {
+        let vertical = divider.axis == .horizontal
+        let parent = divider.parent.insetBy(
+            dx: vertical ? 0 : divider.parent.width * (1 - Elevation.seamSpan) / 2,
+            dy: vertical ? divider.parent.height * (1 - Elevation.seamSpan) / 2 : 0
+        )
+        let line = backingAlignedRect(
+            vertical
+                ? NSRect(x: divider.position - 0.5, y: parent.minY, width: 1, height: parent.height)
+                : NSRect(x: parent.minX, y: divider.position - 0.5, width: parent.width, height: 1),
+            options: .alignAllEdgesNearest
+        )
+        let length = vertical ? line.height : line.width
+        let fade = min(Elevation.seamFade, length / 2) / max(length, 1)
+        let clear = palette.seam.withAlphaComponent(0)
+        guard let gradient = CGGradient(
+            colorsSpace: nil,
+            colors: [clear, palette.seam, palette.seam, clear].map(\.cgColor) as CFArray,
+            locations: [0, fade, 1 - fade, 1]
+        ) else { return }
+        context.saveGState()
+        context.clip(to: line)
+        context.drawLinearGradient(
+            gradient,
+            start: CGPoint(x: line.minX, y: line.minY),
+            end: vertical ? CGPoint(x: line.minX, y: line.maxY) : CGPoint(x: line.maxX, y: line.minY),
+            options: []
+        )
+        context.restoreGState()
+    }
+
+    // A ring outside the pit casts its shadow inward: deep under the top edge, faint along the sides.
+    private func drawShade(in context: CGContext) {
+        let pit = CGPath(roundedRect: bounds, cornerWidth: Elevation.pitRadius, cornerHeight: Elevation.pitRadius, transform: nil)
+        let ring = CGMutablePath()
+        ring.addRect(bounds.insetBy(dx: -40, dy: -40))
+        ring.addPath(pit)
+        context.saveGState()
+        context.addPath(pit)
+        context.clip()
+        // Shadow offsets are in unflipped space: negative height falls downward, into the pit.
+        context.setShadow(offset: CGSize(width: 0, height: -3), blur: 12, color: palette.pitShade.cgColor)
+        context.addPath(ring)
+        context.setFillColor(NSColor.black.cgColor)
+        context.fillPath(using: .evenOdd)
+        context.restoreGState()
     }
 }

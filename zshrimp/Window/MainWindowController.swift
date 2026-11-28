@@ -9,15 +9,9 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     }
 
     init() {
-        let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 900, height: 560),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable, .nonactivatingPanel],
-            backing: .buffered,
-            defer: false
-        )
+        let panel = ChassisWindow(content: panes)
         panel.title = "zshrimp"
         panel.hidesOnDeactivate = false
-        panel.contentView = panes
         panel.center()
         super.init(window: panel)
 
