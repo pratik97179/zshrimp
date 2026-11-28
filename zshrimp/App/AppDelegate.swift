@@ -22,11 +22,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let controller = MainWindowController()
         controller.showWindow(nil)
         windowController = controller
+        NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: controller.window, queue: .main) { _ in
+            DispatchQueue.main.async { NSApp.terminate(nil) }
+        }
         NSApp.activate()
     }
 
+    // The main window is a panel, which AppKit leaves out of its last-window check: closing any other window,
+    // even a tooltip, would quit the app. It quits when the main window itself closes instead.
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        true
+        false
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -35,13 +40,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func showSettings(_ sender: Any?) {
         if settingsWindow == nil {
-            let host = NSHostingController(rootView: SettingsView())
-            host.sizingOptions = .preferredContentSize
-            let window = NSWindow(contentViewController: host)
+            let host = NSHostingView(rootView: SettingsView())
+            let size = host.fittingSize
+            let window = ChassisWindow(content: host, name: "settings", isMain: false)
             window.title = "Settings"
-            window.styleMask = [.titled, .closable]
+            window.setContentSize(NSSize(width: size.width + ChassisView.railWidth + ChassisView.inset, height: size.height + ChassisView.inset * 2))
             // Stays above the terminal when it floats.
             window.level = .floating
+            window.hidesOnDeactivate = false
             window.isReleasedWhenClosed = false
             window.center()
             settingsWindow = window
