@@ -11,6 +11,14 @@ final class PaneContainerView: NSView {
     private var surfaces: [PaneID: TerminalSurface] = [:]
     private var titles: [PaneID: String] = [:]
     private var dragging: SplitTree.Divider?
+    private var pendingRatio: Double?
+    private let dragGuide: NSView = {
+        let view = NSView()
+        view.wantsLayer = true
+        view.layer?.backgroundColor = NSColor.controlAccentColor.cgColor
+        view.isHidden = true
+        return view
+    }()
     private var responderObservation: NSKeyValueObservation?
 
     override var isFlipped: Bool { true }
@@ -153,18 +161,31 @@ final class PaneContainerView: NSView {
         dragging = divider(at: convert(event.locationInWindow, from: nil))
     }
 
+    // Only a guide line moves while dragging; panes resize once on release so shells get one size change, not dozens.
     override func mouseDragged(with event: NSEvent) {
         guard let dragging else { return }
         let point = convert(event.locationInWindow, from: nil)
         let parent = dragging.parent
-        let ratio = dragging.axis == .horizontal
+        let raw = dragging.axis == .horizontal
             ? (point.x - parent.minX) / parent.width
             : (point.y - parent.minY) / parent.height
-        tree.setRatio(ratio, at: dragging.path)
-        needsLayout = true
+        let ratio = min(max(raw, SplitTree.ratioRange.lowerBound), SplitTree.ratioRange.upperBound)
+        pendingRatio = ratio
+
+        if dragGuide.superview == nil { addSubview(dragGuide) }
+        dragGuide.frame = dragging.axis == .horizontal
+            ? NSRect(x: parent.minX + parent.width * ratio - 1, y: parent.minY, width: 2, height: parent.height)
+            : NSRect(x: parent.minX, y: parent.minY + parent.height * ratio - 1, width: parent.width, height: 2)
+        dragGuide.isHidden = false
     }
 
     override func mouseUp(with event: NSEvent) {
+        if let dragging, let pendingRatio {
+            tree.setRatio(pendingRatio, at: dragging.path)
+            needsLayout = true
+        }
         dragging = nil
+        pendingRatio = nil
+        dragGuide.isHidden = true
     }
 }
