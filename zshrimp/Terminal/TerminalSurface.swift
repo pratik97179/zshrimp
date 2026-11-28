@@ -8,6 +8,19 @@ final class TerminalSurface: LocalProcessTerminalViewDelegate {
 
     init() {
         view.processDelegate = self
+        apply(Settings.shared.values)
+        Task { [weak self] in
+            for await values in Observations({ Settings.shared.values }) {
+                guard let self else { break }
+                self.apply(values)
+            }
+        }
+    }
+
+    private func apply(_ values: Settings.Values) {
+        view.font = values.font
+        if let foreground = NSColor(hex: values.foreground) { view.nativeForegroundColor = foreground }
+        if let background = NSColor(hex: values.background) { view.nativeBackgroundColor = background }
     }
 
     func start() {
